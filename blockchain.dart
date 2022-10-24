@@ -1,19 +1,53 @@
 import 'block.dart';
+import 'transaction.dart';
 
 class Blockchain {
   List<Block> blocks = [Block.genesis()];
 
+  List<Transaction> pendingTransactions = [];
+
+  double miningReward = 100;
   int difficulty = 2;
 
-  void addBlock(String data) {
+  void minePendingTransactions(String miningRewardAddress) {
     final newBlock = Block(
-      data: data,
+      transactions: pendingTransactions,
       timestamp: DateTime.now(),
       prevHash: blocks.last.hash,
       difficulty: difficulty,
-    )..mineBlock(blocks.last, data);
+    )..mineBlock(blocks.last);
 
     blocks.add(newBlock);
+
+    pendingTransactions = [
+      Transaction(
+        amount: miningReward,
+        fromAddress: 'Blockchain-reward',
+        toAddress: miningRewardAddress,
+      ),
+    ];
+  }
+
+  void addTransaction(Transaction transaction) {
+    pendingTransactions.add(transaction);
+  }
+
+  double getBalanceOfAddress(String address) {
+    double balance = 0;
+
+    blocks.forEach((block) {
+      block.transactions.forEach((element) {
+        if (element.fromAddress == address) {
+          balance -= element.amount;
+        }
+
+        if (element.toAddress == address) {
+          balance += element.amount;
+        }
+      });
+    });
+
+    return balance;
   }
 
   bool isValid() {
@@ -33,7 +67,5 @@ class Blockchain {
   }
 
   @override
-  String toString() {
-    return blocks.toString();
-  }
+  String toString() => blocks.toString();
 }

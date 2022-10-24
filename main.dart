@@ -1,13 +1,15 @@
-import 'block.dart';
 import 'blockchain.dart';
+import 'transaction.dart';
 
 void main() {
   final blockChain = Blockchain();
 
-  blockChain.addBlock('Слава должен диме 500 рублей');
-  blockChain.addBlock('Слава должен диме 500 рублей');
-  blockChain.addBlock('Слава должен диме 500 рублей');
+  blockChain.addTransaction(
+    Transaction(amount: 30, fromAddress: 'slava', toAddress: 'dima'),
+  );
 
-  print(blockChain.toString());
-  print(blockChain.isValid());
+  blockChain.minePendingTransactions('slava');
+
+  print(blockChain);
+  print(blockChain.getBalanceOfAddress('slava'));
 }

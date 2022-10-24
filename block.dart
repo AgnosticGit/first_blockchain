@@ -1,45 +1,47 @@
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 
+import 'transaction.dart';
+
 class Block {
   Block({
-    required this.data,
+    required this.transactions,
     required this.prevHash,
     required this.difficulty,
-    this.timestamp,
+    required this.timestamp,
     this.hash = '',
     this.nounce = 0,
   });
 
   final String prevHash;
-  final String data;
+  final List<Transaction> transactions;
   final int difficulty;
-  DateTime? timestamp;
+  DateTime timestamp;
   String hash;
   int nounce = 0;
 
   factory Block.genesis() {
     return Block(
       prevHash: '',
-      data: 'Genesis block',
+      transactions: [],
       timestamp: DateTime.parse('2022-01-01'),
       hash: '00000000000000',
       difficulty: 0,
     );
   }
 
-  Block mineBlock(Block lastBlock, String data) {
+  Block mineBlock(Block lastBlock) {
     final zeros = getZeros(difficulty);
     hash = calculateBlockHash();
 
     while (hash.substring(0, difficulty) != zeros) {
       nounce++;
       timestamp = DateTime.now();
-      hash = calculateHash(prevHash, timestamp!, data, nounce);
+      hash = calculateHash(prevHash, timestamp, transactions, nounce);
     }
 
     return Block(
-      data: data,
+      transactions: transactions,
       prevHash: prevHash,
       timestamp: timestamp,
       hash: hash,
@@ -49,11 +51,9 @@ class Block {
   }
 
   String calculateBlockHash() {
-    timestamp = timestamp ?? DateTime.now();
-
     final mixedData = prevHash +
-        timestamp!.millisecondsSinceEpoch.toString() +
-        data +
+        timestamp.millisecondsSinceEpoch.toString() +
+        transactions.toString() +
         nounce.toString();
     final bytes = utf8.encode(mixedData);
     final hashed = sha256.convert(bytes);
@@ -64,12 +64,12 @@ class Block {
   static String calculateHash(
     String prevHash,
     DateTime timestamp,
-    String data,
+    List<Transaction> transactions,
     int nounce,
   ) {
     final mixedData = prevHash +
         timestamp.millisecondsSinceEpoch.toString() +
-        data +
+        transactions.toString() +
         nounce.toString();
     final bytes = utf8.encode(mixedData);
     final hashed = sha256.convert(bytes);
@@ -89,6 +89,6 @@ class Block {
 
   @override
   String toString() {
-    return '\n\nhash: $hash\nprevHash: $prevHash\ndata: $data\ntimestamp: $timestamp\nnounce: $nounce';
+    return '\n\nhash: $hash\nprevHash: $prevHash\ntransactions: $transactions\ntimestamp: $timestamp\nnounce: $nounce';
   }
 }
